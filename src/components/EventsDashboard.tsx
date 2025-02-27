@@ -56,7 +56,20 @@ export default function EventsDashboard() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isNewEventModalOpen, setIsNewEventModalOpen] = useState(false);
   const [editFormData, setEditFormData] = useState<Event | null>(null);
+  const [newEventData, setNewEventData] = useState<Event>({
+    id: `EV-00${events.length + 1}`,
+    title: "",
+    type: "",
+    status: "Active",
+    priority: "Medium",
+    location: "",
+    startDate: new Date().toISOString().slice(0, 16).replace('T', ' '),
+    description: "",
+    assignedTeams: []
+  });
+  const [newTeamInput, setNewTeamInput] = useState("");
 
   const handleViewEvent = (event: Event) => {
     setSelectedEvent(event);
@@ -86,6 +99,47 @@ export default function EventsDashboard() {
         [e.target.name]: e.target.value
       });
     }
+  };
+
+  const handleNewEventInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setNewEventData({
+      ...newEventData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleAddTeam = () => {
+    if (newTeamInput.trim() !== "") {
+      setNewEventData({
+        ...newEventData,
+        assignedTeams: [...newEventData.assignedTeams, newTeamInput.trim()]
+      });
+      setNewTeamInput("");
+    }
+  };
+
+  const handleRemoveTeam = (teamToRemove: string) => {
+    setNewEventData({
+      ...newEventData,
+      assignedTeams: newEventData.assignedTeams.filter(team => team !== teamToRemove)
+    });
+  };
+
+  const handleCreateEvent = () => {
+    setEvents([...events, newEventData]);
+    setIsNewEventModalOpen(false);
+    // Reset form for next time
+    setNewEventData({
+      id: `EV-00${events.length + 2}`, // Increment for next potential event
+      title: "",
+      type: "",
+      status: "Active",
+      priority: "Medium",
+      location: "",
+      startDate: new Date().toISOString().slice(0, 16).replace('T', ' '),
+      description: "",
+      assignedTeams: []
+    });
   };
 
   const handleCloseEvent = (eventId: string) => {
@@ -139,7 +193,10 @@ export default function EventsDashboard() {
           <div className="bg-white rounded-lg shadow">
             <div className="bg-blue-600 text-white p-4 flex items-center justify-between rounded-t-lg">
               <h2 className="text-xl font-semibold">Active Events</h2>
-              <button className="bg-blue-700 px-4 py-2 rounded hover:bg-blue-800">
+              <button 
+                className="bg-blue-700 px-4 py-2 rounded hover:bg-blue-800"
+                onClick={() => setIsNewEventModalOpen(true)}
+              >
                 New Event
               </button>
             </div>
@@ -427,6 +484,162 @@ export default function EventsDashboard() {
                   onClick={handleUpdateEvent}
                 >
                   Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* New Event Modal */}
+      {isNewEventModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-2xl w-full">
+            <div className="bg-blue-600 text-white p-4 rounded-t-lg flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Create New Event</h2>
+              <button 
+                className="text-white hover:text-gray-200"
+                onClick={() => setIsNewEventModalOpen(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Event ID</label>
+                  <input 
+                    type="text" 
+                    name="id" 
+                    value={newEventData.id} 
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-300 rounded bg-gray-100"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Status</label>
+                  <select 
+                    name="status" 
+                    value={newEventData.status} 
+                    onChange={handleNewEventInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Resolved">Resolved</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Title</label>
+                  <input 
+                    type="text" 
+                    name="title" 
+                    value={newEventData.title} 
+                    onChange={handleNewEventInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Type</label>
+                  <input 
+                    type="text" 
+                    name="type" 
+                    value={newEventData.type} 
+                    onChange={handleNewEventInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Priority</label>
+                  <select 
+                    name="priority" 
+                    value={newEventData.priority} 
+                    onChange={handleNewEventInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded"
+                  >
+                    <option value="Critical">Critical</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">Start Date</label>
+                  <input 
+                    type="text" 
+                    name="startDate" 
+                    value={newEventData.startDate} 
+                    onChange={handleNewEventInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm text-gray-600 mb-1">Location</label>
+                  <input 
+                    type="text" 
+                    name="location" 
+                    value={newEventData.location} 
+                    onChange={handleNewEventInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded"
+                    required
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm text-gray-600 mb-1">Description</label>
+                  <textarea 
+                    name="description" 
+                    value={newEventData.description} 
+                    onChange={handleNewEventInputChange}
+                    rows={3}
+                    className="w-full px-3 py-2 border border-gray-300 rounded"
+                  ></textarea>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm text-gray-600 mb-1">Assigned Teams</label>
+                  <div className="flex mb-2">
+                    <input 
+                      type="text" 
+                      value={newTeamInput} 
+                      onChange={(e) => setNewTeamInput(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-l"
+                      placeholder="Add a team"
+                    />
+                    <button 
+                      className="px-4 py-2 bg-blue-600 text-white rounded-r hover:bg-blue-700"
+                      onClick={handleAddTeam}
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {newEventData.assignedTeams.map((team, index) => (
+                      <span key={index} className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-sm flex items-center">
+                        {team}
+                        <button 
+                          className="ml-2 text-red-500 hover:text-red-700"
+                          onClick={() => handleRemoveTeam(team)}
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3">
+                <button 
+                  className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50"
+                  onClick={() => setIsNewEventModalOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button 
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  onClick={handleCreateEvent}
+                  disabled={!newEventData.title || !newEventData.type || !newEventData.location}
+                >
+                  Create Event
                 </button>
               </div>
             </div>
